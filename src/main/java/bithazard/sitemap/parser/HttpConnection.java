@@ -10,6 +10,9 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+
+import org.apache.commons.codec.binary.Base64;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -100,6 +103,11 @@ class HttpConnection implements Closeable {
 
     public int getTimeout() {
         return timeout;
+    }
+    
+    public void setBasicAuthorization(String userName, String password) {
+        initializeConnection();
+        httpURLConnection.setRequestProperty("Authorization", "Basic " + Base64.encodeBase64String((userName + ":" + password).getBytes()));
     }
 
     public boolean isIgnoreTlsCertificates() {

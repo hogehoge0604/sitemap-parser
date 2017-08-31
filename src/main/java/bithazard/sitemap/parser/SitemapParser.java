@@ -29,6 +29,8 @@ public class SitemapParser {
     private int timeout = 15000;
     private boolean ignoreTlsCertificates = true;
     private boolean continueOnErrors = false;
+    private String userName = null;
+    private String password = null;
 
     /**
      * Set the user agent string that should be used when retrieving a sitemap or determining the location of a sitemap.
@@ -79,6 +81,24 @@ public class SitemapParser {
     public void setContinueOnErrors(boolean continueOnErrors) {
         this.continueOnErrors = continueOnErrors;
     }
+    
+    /**
+     * Basic Authorization "userName"
+     * 
+     * @param userName
+     */
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+    
+    /**
+     * Basic Authorization "password"
+     * 
+     * @param password
+     */
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
     /**
      * Get the user agent string that is used when retrieving a sitemap or determining the location of a sitemap. By
@@ -118,6 +138,24 @@ public class SitemapParser {
     public boolean isContinueOnErrors() {
         return continueOnErrors;
     }
+    
+    /**
+     * Get the Basic Authorization "userName"
+     * 
+     * @return userName
+     */
+    public String getUserName() {
+        return this.userName == null ? "" : this.userName;
+    }
+    
+    /**
+     * Get the Basic Authorization "password"
+     * 
+     * @return password
+     */
+    public String getPassword() {
+        return this.password == null ? "" : this.password;
+    }
 
     /**
      * Tries to get the location of the sitemap or sitemaps by retrieving the robots.txt file of a web server and
@@ -149,6 +187,11 @@ public class SitemapParser {
     public Set<String> getSitemapLocations(URL url) {
         URL robotsTxtUrl = HttpConnection.getRobotsTxtUrl(url);
         try (HttpConnection httpConnection = new HttpConnection(robotsTxtUrl, userAgent, timeout, ignoreTlsCertificates)) {
+            
+            if(this.getUserName().length() > 0 && this.getPassword().length() > 0) { 
+                httpConnection.setBasicAuthorization(this.getUserName(), this.getPassword());
+            }
+            
             int responseCode = httpConnection.getResponseCode();
             if (responseCode < 200 || responseCode >= 300) {
                 throw new InvalidSitemapUrlException("Sitemap locations could not be found. Robots.txt returned HTTP status code "
@@ -315,6 +358,11 @@ public class SitemapParser {
 
     private Sitemap parseSitemap(URL url, boolean recursive, Date minLastMod) {
         try (HttpConnection httpConnection = new HttpConnection(url, userAgent, timeout, ignoreTlsCertificates)) {
+
+            if(this.getUserName().length() > 0 && this.getPassword().length() > 0) { 
+                httpConnection.setBasicAuthorization(this.getUserName(), this.getPassword());
+            }
+            
             int responseCode = httpConnection.getResponseCode();
             if (responseCode < 200 || responseCode >= 300) {
                 throw new InvalidSitemapUrlException("Sitemap URL " + url + " could not be loaded. HTTP status code "
@@ -337,6 +385,11 @@ public class SitemapParser {
             }
             URL sitemapUrl = HttpConnection.newUrl(sitemapIndex.getLoc());
             try (HttpConnection httpConnection = new HttpConnection(sitemapUrl, userAgent, timeout, ignoreTlsCertificates)) {
+
+                if(this.getUserName().length() > 0 && this.getPassword().length() > 0) { 
+                    httpConnection.setBasicAuthorization(this.getUserName(), this.getPassword());
+                }
+                
                 int responseCode = httpConnection.getResponseCode();
                 if (responseCode < 200 || responseCode >= 300) {
                     throw new InvalidSitemapUrlException("Sitemap URL " + sitemapUrl + " could not be loaded. HTTP status code "
